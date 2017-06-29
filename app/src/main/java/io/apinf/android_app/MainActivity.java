@@ -133,4 +133,9 @@ public class MainActivity extends AppCompatActivity {
         Intent Intent = new Intent(this, addAPI.class);
         startActivity(Intent);
     }
+    public void loginFunction(View v)
+    {
+        Intent Intent = new Intent(this, login.class);
+        startActivity(Intent);
+    }
 }
