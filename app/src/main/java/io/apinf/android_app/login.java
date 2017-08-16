@@ -9,6 +9,13 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -23,6 +30,8 @@ import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -59,74 +68,40 @@ public class login extends AppCompatActivity {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-
-                executePost(loginUrl,loginParams.toString());
+                StringRequest postRequest = new StringRequest(Request.Method.POST, loginUrl,
+                        new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                                try {
+                                    JSONObject jsonResponse = new JSONObject(response).getJSONObject("form");
+                                    String site = jsonResponse.getString("site"),
+                                            network = jsonResponse.getString("network");
+                                    System.out.println("Site: "+site+"\nNetwork: "+network);
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        },
+                        new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                error.printStackTrace();
+                            }
+                        }
+                ) {
+                    @Override
+                    protected Map<String, String> getParams()
+                    {
+                        Map<String, String> params = new HashMap<>();
+                        // the POST parameters:
+                        params.put("site", "code");
+                        params.put("network", "tutsplus");
+                        return params;
+                    }
+                };
+                RequestQueue queue = Volley.newRequestQueue(this);
 
             }
         });
     }
-    public String executePost(String targetURL,String urlParameters) {
-        int timeout=5000;
-        URL url;
-        HttpURLConnection connection = null;
-        try {
-            // Create connection
-
-            url = new URL(targetURL);
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type",
-                    "application/json");
-
-            connection.setRequestProperty("Content-Length",
-                    "" + Integer.toString(urlParameters.getBytes().length));
-            connection.setRequestProperty("Content-Language", "en-US");
-
-            connection.setUseCaches(false);
-            connection.setDoInput(true);
-            connection.setDoOutput(true);
-            connection.setConnectTimeout(timeout);
-            connection.setReadTimeout(timeout);
-
-            // Send request
-            OutputStreamWriter wr = new OutputStreamWriter(connection.getOutputStream());
-            wr.write(urlParameters);
-            wr.flush();
-            wr.close();
-
-            // Get Response
-            InputStream is = connection.getInputStream();
-            BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-            String line;
-            StringBuffer response = new StringBuffer();
-            while ((line = rd.readLine()) != null) {
-                response.append(line);
-                response.append('\r');
-            }
-            rd.close();
-            returnLoginTextView.setText("response: " + response.toString());
-            return response.toString();
-
-        } catch (SocketTimeoutException ex) {
-            ex.printStackTrace();
-
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        } catch (IOException ex) {
-
-            Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-
-            if (connection != null) {
-                connection.disconnect();
-            }
-        }
-        return null;
-
-    }
-
 }
