@@ -9,36 +9,29 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.SocketTimeoutException;
-import java.net.URL;
-import java.net.UnknownHostException;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class login extends AppCompatActivity {
 
     EditText username, password;
     String loginUrl = "https://nightly.apinf.io/rest/v1/login";
+    String url ="https://nightly.apinf.io/rest/v1/apis/";
     TextView returnLoginTextView;
 
     @Override
@@ -52,15 +45,18 @@ public class login extends AppCompatActivity {
         returnLoginTextView = (TextView) findViewById(R.id.textView8);
         returnLoginTextView.setText("kissa");
 
+        final RequestQueue requestQueue = Volley.newRequestQueue(this);
+
         ((Button) findViewById(R.id.button3)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                returnLoginTextView.setText("connecting...");
                 Toast.makeText(getApplicationContext(),
                         "username: " + username.getText().toString() +
                                 "\npassword: " + password.getText().toString(),
                         Toast.LENGTH_LONG).show();
 
-                JSONObject loginParams = new JSONObject();
+                final JSONObject loginParams = new JSONObject();
 
                 try {
                     loginParams .put("username", username.getText().toString());
@@ -68,40 +64,73 @@ public class login extends AppCompatActivity {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                StringRequest postRequest = new StringRequest(Request.Method.POST, loginUrl,
+
+
+                /*final StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                         new Response.Listener<String>() {
                             @Override
                             public void onResponse(String response) {
-                                try {
-                                    JSONObject jsonResponse = new JSONObject(response).getJSONObject("form");
-                                    String site = jsonResponse.getString("site"),
-                                            network = jsonResponse.getString("network");
-                                    System.out.println("Site: "+site+"\nNetwork: "+network);
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
+
+                                // Result handling
+                                returnLoginTextView.setText(response);
+
                             }
-                        },
-                        new Response.ErrorListener() {
-                            @Override
-                            public void onErrorResponse(VolleyError error) {
-                                error.printStackTrace();
+                        }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+                        // Error handling
+                        returnLoginTextView.setText("Something went wrong!");
+                        error.printStackTrace();
+
+                    }
+                });
+
+// Add the request to the queue
+                requestQueue.add(stringRequest);*/
+
+                try {
+
+                    JSONObject jsonBody = new JSONObject();
+                    jsonBody.put("username", "wuder3");
+                    jsonBody.put("password", "salasana");
+                    final String requestBody = jsonBody.toString();
+
+                    StringRequest stringRequest = new StringRequest(Request.Method.POST,
+                            loginUrl, new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            Log.i("VOLLEY", response);
+                            returnLoginTextView.setText(response);
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.e("VOLLEY", error.toString());
+                        }
+                    }) {
+                        @Override
+                        public String getBodyContentType() {
+                            return "application/json; charset=utf-8";
+                        }
+
+                        @Override
+                        public byte[] getBody() throws AuthFailureError {
+                            try {
+                                return requestBody == null ? null : requestBody.getBytes("utf-8");
+                            } catch (UnsupportedEncodingException uee) {
+                                VolleyLog.wtf("Unsupported Encoding while trying to get the bytes of %s using %s", requestBody, "utf-8");
+                                return null;
                             }
                         }
-                ) {
-                    @Override
-                    protected Map<String, String> getParams()
-                    {
-                        Map<String, String> params = new HashMap<>();
-                        // the POST parameters:
-                        params.put("site", "code");
-                        params.put("network", "tutsplus");
-                        return params;
-                    }
-                };
-                RequestQueue queue = Volley.newRequestQueue(this);
+                    };
 
+                    requestQueue.add(stringRequest);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
 }
+
