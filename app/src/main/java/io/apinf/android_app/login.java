@@ -56,44 +56,11 @@ public class login extends AppCompatActivity {
                                 "\npassword: " + password.getText().toString(),
                         Toast.LENGTH_LONG).show();
 
-                final JSONObject loginParams = new JSONObject();
-
-                try {
-                    loginParams .put("username", username.getText().toString());
-                    loginParams .put("password", password.getText().toString());
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-
-                /*final StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                        new Response.Listener<String>() {
-                            @Override
-                            public void onResponse(String response) {
-
-                                // Result handling
-                                returnLoginTextView.setText(response);
-
-                            }
-                        }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-
-                        // Error handling
-                        returnLoginTextView.setText("Something went wrong!");
-                        error.printStackTrace();
-
-                    }
-                });
-
-// Add the request to the queue
-                requestQueue.add(stringRequest);*/
-
                 try {
 
                     JSONObject jsonBody = new JSONObject();
-                    jsonBody.put("username", "wuder3");
-                    jsonBody.put("password", "salasana");
+                    jsonBody.put("username", username.getText().toString());
+                    jsonBody.put("password", password.getText().toString());
                     final String requestBody = jsonBody.toString();
 
                     StringRequest stringRequest = new StringRequest(Request.Method.POST,
