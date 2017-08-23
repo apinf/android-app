@@ -68,12 +68,25 @@ public class login extends AppCompatActivity {
                         @Override
                         public void onResponse(String response) {
                             Log.i("VOLLEY", response);
-                            returnLoginTextView.setText(response);
+                            //returnLoginTextView.setText(response);
+                            if(response.contains("success"))
+                            {
+                                returnLoginTextView.setText("Login successful");
+                            }
                         }
                     }, new Response.ErrorListener() {
                         @Override
                         public void onErrorResponse(VolleyError error) {
                             Log.e("VOLLEY", error.toString());
+                            //returnLoginTextView.setText(error + "\nInvalid username or password. Try again");
+                            if(error.toString().contains("AuthFailureError"))
+                            {
+                                returnLoginTextView.setText("Invalid username or password. Try again");
+                            }
+                            if(error.toString().contains("NoConnectionError"))
+                            {
+                                returnLoginTextView.setText("Check your internet connection");
+                            }
                         }
                     }) {
                         @Override
