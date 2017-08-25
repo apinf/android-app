@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,13 +29,17 @@ public class MainActivity extends AppCompatActivity {
     public final URL apinfApiUrlApis =
             new URL("https://nightly.apinf.io/rest/v1/apis/");
 
+
+
     public MainActivity() throws MalformedURLException {
     }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
 
 
@@ -131,7 +134,25 @@ public class MainActivity extends AppCompatActivity {
     public void buttonClickFunction(View v)
     {
         Intent Intent = new Intent(this, addAPI.class);
-        startActivity(Intent);
+        String userStr;
+        String authStr;
+        try {
+            Bundle info = getIntent().getExtras();
+            userStr = info.getString("userId");
+            authStr = info.getString("authToken");
+            info.putString("userId", userStr);
+            info.putString("authToken", authStr);
+            Intent.putExtras(info);
+        } catch (NullPointerException e ) {
+            userStr = "none";
+        }
+        if (userStr == "none"){
+            Toast.makeText(getApplicationContext(),
+                    "Sign in to add API", Toast.LENGTH_LONG).show();
+        } else {
+
+            startActivity(Intent);
+        }
     }
     public void loginFunction(View v)
     {

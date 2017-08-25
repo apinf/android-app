@@ -1,5 +1,7 @@
 package io.apinf.android_app;
 
+import android.content.Intent;
+import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,6 +22,7 @@ import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -27,12 +30,15 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.util.logging.Logger.GLOBAL_LOGGER_NAME;
+import static java.util.logging.Logger.global;
+
 public class login extends AppCompatActivity {
 
     EditText username, password;
     String loginUrl = "https://nightly.apinf.io/rest/v1/login";
-    String url ="https://nightly.apinf.io/rest/v1/apis/";
     TextView returnLoginTextView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,16 +51,19 @@ public class login extends AppCompatActivity {
         returnLoginTextView = (TextView) findViewById(R.id.textView8);
         returnLoginTextView.setText("kissa");
 
+
+        final Intent i = new Intent(this, MainActivity.class);
+        final Bundle bundle = new Bundle();
+
         final RequestQueue requestQueue = Volley.newRequestQueue(this);
 
         ((Button) findViewById(R.id.button3)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 returnLoginTextView.setText("connecting...");
-                Toast.makeText(getApplicationContext(),
-                        "username: " + username.getText().toString() +
-                                "\npassword: " + password.getText().toString(),
-                        Toast.LENGTH_LONG).show();
+                //Toast.makeText(getApplicationContext(),"username: " + username.getText().toString() +
+                                //"\npassword: " + password.getText().toString(),
+                        //Toast.LENGTH_LONG).show();
 
                 try {
 
@@ -68,17 +77,42 @@ public class login extends AppCompatActivity {
                         @Override
                         public void onResponse(String response) {
                             Log.i("VOLLEY", response);
-                            //returnLoginTextView.setText(response);
+                            JSONObject loginAll = null;
+                            try {
+                                loginAll = new JSONObject(response);
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            String dataStr;
+                            JSONObject dataJson = null;
+                            try {
+                                dataStr = loginAll.getString("data");
+                                dataJson = new JSONObject(dataStr);
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
+                            String authStr ="";
+                            String userStr ="";
+                            try {
+                                authStr = dataJson.getString("authToken");
+                                userStr = dataJson.getString("userId");
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
                             if(response.contains("success"))
                             {
-                                returnLoginTextView.setText("Login successful");
+                                returnLoginTextView.setText("Login successful\n" + authStr + "\n" + userStr);
+                                bundle.putString("userId", userStr);
+                                bundle.putString("authToken", authStr);
+                                i.putExtras(bundle);
+                                startActivity(i);
                             }
                         }
                     }, new Response.ErrorListener() {
                         @Override
                         public void onErrorResponse(VolleyError error) {
                             Log.e("VOLLEY", error.toString());
-                            //returnLoginTextView.setText(error + "\nInvalid username or password. Try again");
                             if(error.toString().contains("AuthFailureError"))
                             {
                                 returnLoginTextView.setText("Invalid username or password. Try again");
@@ -111,6 +145,7 @@ public class login extends AppCompatActivity {
                 }
             }
         });
+
     }
 }
 
